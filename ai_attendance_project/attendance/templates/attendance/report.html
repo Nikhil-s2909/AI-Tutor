@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Attendance Report{% endblock %}
+{% block content %}
+<h3>Attendance Report</h3>
+<table class="table table-bordered table-striped">
+  <thead><tr><th>Student</th><th>Student ID</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+  <tbody>
+    {% for r in records %}
+      <tr>
+        <td>{{ r.student.user.username }}</td>
+        <td>{{ r.student.student_id }}</td>
+        <td>{{ r.date }}</td>
+        <td>{{ r.time }}</td>
+        <td>{{ r.status }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-center">No records yet</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

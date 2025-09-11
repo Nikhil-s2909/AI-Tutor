@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<h3>Login</h3>
+<form method="post" class="row g-3">
+  {% csrf_token %}
+  <div class="col-md-6"><input class="form-control" name="username" placeholder="Username"></div>
+  <div class="col-md-6"><input class="form-control" type="password" name="password" placeholder="Password"></div>
+  <div class="col-12"><button class="btn btn-primary">Login</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Face Recognition Attendance</h2>
+<p>Allow camera access and click <strong>Scan & Mark</strong>. The page will attempt to recognize your face and mark attendance.</p>
+
+<video id="video" width="640" height="480" autoplay playsinline></video>
+<canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+<br/>
+<button id="scanBtn">Scan & Mark</button>
+<p id="status"></p>
+
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const scanBtn = document.getElementById('scanBtn');
+const status = document.getElementById('status');
+
+// request webcam
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => { video.srcObject = stream; })
+.catch(err => { status.innerText = 'Cannot access camera: ' + err; });
+
+scanBtn.addEventListener('click', async () => {
+    status.innerText = 'Scanning...';
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg');
+    try {
+        const resp = await fetch('{% url "face_recognize_api" %}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ image: dataUrl })
+        });
+        const j = await resp.json();
+        if(j.success){
+            status.innerText = 'Attendance marked for: ' + j.name + '. Redirecting to report...';
+            setTimeout(()=>{ window.location.href = j.redirect_url; }, 1200);
+        } else {
+            status.innerText = 'Not recognized: ' + j.message;
+        }
+    } catch(err){
+        status.innerText = 'Error: ' + err;
+    }
+});
+
+// simple csrftoken getter
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
